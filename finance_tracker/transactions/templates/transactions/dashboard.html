@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load humanize l10n %}
+
+{% block content %}
+<!-- CSS Customizado -->
+<style>
+    body {
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+        color: #2c3e50;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .btn-custom {
+        background: #ff6b6b;
+        color: white;
+        border-radius: 25px;
+        padding: 12px 25px;
+        font-weight: 600;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+
+<div class="container mt-5">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-4 fw-bold">Olá, {{ request.user.username }}! 👋</h1>
+            <p class="lead text-muted">Seu panorama financeiro</p>
+        </div>
+        <a href="{% url 'logout' %}" class="btn btn-custom">
+            <i class="bi bi-box-arrow-right me-2"></i>Sair
+        </a>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-arrow-up-circle me-2"></i>Receitas</h5>
+                    <p class="card-text display-6">€{{ income_total|default:0|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-arrow-down-circle me-2"></i>Despesas</h5>
+                    <p class="card-text display-6">€{{ expense_total|default:0|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-graph-up me-2"></i>Saldo</h5>
+                    <p class="card-text display-6">€{{ balance|default:0|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção Gráfico e Comparativo -->
+    <div class="row g-4">
+        <!-- Gráfico de Categorias -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Distribuição por Categoria</h4>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela Comparativa -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-calendar-range me-2"></i>Comparativo Mensal</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mês</th>
+                                    <th class="text-end">Receitas</th>
+                                    <th class="text-end">Despesas</th>
+                                    <th class="text-end">Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in monthly_comparison %}
+                                <tr>
+                                    <td>{{ month.month|date:"M/Y" }}</td>
+                                    <td class="text-success text-end">€{{ month.income|default:0|floatformat:2|intcomma }}</td>
+                                    <td class="text-danger text-end">€{{ month.expense|default:0|floatformat:2|intcomma }}</td>
+                                    <td class="text-end fw-bold {% if month.balance > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        €{{ month.balance|floatformat:2|intcomma }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Nenhum registro encontrado</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+/* eslint-disable */
+document.addEventListener('DOMContentLoaded', function() {
+    // Geração dos arrays de labels e dados para o gráfico
+    var labels = [
+        {% for item in category_summary %}
+            "{{ item.category|escapejs }}"{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ];
+    var data = [
+        {% for item in category_summary %}
+            {{ item.total|default:0|floatformat:"2" }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ];
+    
+    var ctx = document.getElementById("categoryChart").getContext("2d");
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Gastos",
+                data: data,
+                backgroundColor: [
+                    "#FF6384", "#36A2EB", "#FFCE56",
+                    "#4BC0C0", "#9966FF", "#FF9F40"
+                ],
+                borderWidth: 2,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#2c3e50',
+                        font: {
+                            size: 14,
+                            family: 'Arial'
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            if (label) label += ': ';
+                            label += '€' + context.parsed.toFixed(2);
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

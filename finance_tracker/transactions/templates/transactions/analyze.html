@@ -1,0 +1,57 @@
+{% extends 'transactions/base.html' %}
+
+{% block content %}
+  <h2>Análise Financeira</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card text-white bg-success mb-3">
+        <div class="card-header">Total de Receitas</div>
+        <div class="card-body">
+          <h5 class="card-title">€ {{ income_total|default:"0" }}</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-danger mb-3">
+        <div class="card-header">Total de Despesas</div>
+        <div class="card-body">
+          <h5 class="card-title">€ {{ expense_total|default:"0" }}</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-info mb-3">
+        <div class="card-header">Balanço</div>
+        <div class="card-body">
+          <h5 class="card-title">€ {{ balance|default:"0" }}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Gráfico Circular</h3>
+  <canvas id="myChart" width="500" height="500"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Converte as variáveis do Django para números em JavaScript
+    const incomeTotal = parseFloat("{{ income_total|default:'0' }}");
+    const expenseTotal = parseFloat("{{ expense_total|default:'0' }}");
+
+    console.log('Income:', incomeTotal, 'Expense:', expenseTotal); // Para debug
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Receitas', 'Despesas'],
+        datasets: [{
+          data: [incomeTotal, expenseTotal],
+          backgroundColor: ['#28a745', '#dc3545'],
+        }]
+      },
+      options: {
+        responsive: false,
+      }
+    });
+  </script>
+{% endblock %}

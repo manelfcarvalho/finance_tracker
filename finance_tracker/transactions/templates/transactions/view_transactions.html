@@ -1,0 +1,36 @@
+<!-- transactions/templates/transactions/view_transactions.html -->
+{% extends 'transactions/base.html' %}
+
+{% block content %}
+  <h2>Lista de Transações</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Categoria</th>
+        <th>Valor</th>
+        <th>Data</th>
+        <th>Descrição</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transactions %}
+      <tr>
+        <td>{{ t.get_transaction_type_display }}</td>
+        <td>{{ t.category }}</td>
+        <td>{{ t.amount }}</td>
+        <td>{{ t.date }}</td>
+        <td>{{ t.description }}</td>
+        <td>
+          <!-- Exemplo: botão de delete (você pode criar uma view para deletar) -->
+          <form action="{% url 'transactions:delete_transaction' pk=t.id %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

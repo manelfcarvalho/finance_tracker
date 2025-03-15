@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h1>Bem-vindo ao Finance Tracker</h1>
+  {% if not user.is_authenticated %}
+    <a href="{% url 'login' %}" class="btn btn-primary">Fazer Login</a>
+    <a href="{% url 'register' %}" class="btn btn-secondary">Criar Conta</a>
+  {% else %}
+    <a href="{% url 'dashboard' %}" class="btn btn-success">Ir para o Dashboard</a>
+  {% endif %}
+{% endblock %}
