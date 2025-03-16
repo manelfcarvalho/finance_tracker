@@ -1,10 +1,78 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-  <h2>Entrar</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Login</button>
-  </form>
-  <p>Não tem uma conta? <a href="{% url 'register' %}">Criar Conta</a></p>
+<div class="container">
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg" data-aos="zoom-in">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0 fw-bold"><i class="bi bi-box-arrow-in-right me-2"></i>Bem-vindo</h2>
+                </div>
+                <div class="card-body p-5">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Email -->
+                        <div class="form-floating mb-4">
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="id_username" 
+                                   name="username"
+                                   placeholder="Email"
+                                   required>
+                            <label for="id_username"><i class="bi bi-envelope me-2"></i>Username</label>
+                            <div class="invalid-feedback">
+                                Por favor insira o seu username.
+                            </div>
+                        </div>
+
+                        <!-- Senha -->
+                        <div class="form-floating mb-4">
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="id_password" 
+                                   name="password"
+                                   placeholder="Senha"
+                                   required>
+                            <label for="id_password"><i class="bi bi-lock me-2"></i>Senha</label>
+                            <div class="invalid-feedback">
+                                Por favor insira sua senha.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg mb-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                        </button>
+
+                        <div class="text-center pt-3">
+                            <p class="text-muted mb-0">Não tem uma conta?</p>
+                            <a href="{% url 'register' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-person-plus me-2"></i>Criar Conta
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card {
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    .form-control {
+        border-width: 2px;
+        padding: 1rem;
+    }
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #4a5568;
+    }
+</style>
 {% endblock %}

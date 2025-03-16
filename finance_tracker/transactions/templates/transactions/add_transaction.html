@@ -1,19 +1,19 @@
-{% extends 'transactions/base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Cabeçalho com botão de voltar -->
+            <!-- Cabeçalho -->
             <div class="d-flex align-items-center mb-5">
                 <a href="{% url 'transactions:dashboard' %}" class="btn btn-light btn-sm me-3">
                     <i class="bi bi-arrow-left"></i>
                 </a>
-                <h2 class="mb-0">Nova Transação</h2>
+                <h1 class="display-6 mb-0">Nova Transação</h1>
             </div>
 
-            <!-- Card do formulário -->
+            <!-- Card do Formulário -->
             <div class="card border-0 shadow-lg">
                 <div class="card-header bg-primary text-white py-3">
                     <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Registro Financeiro</h4>
@@ -23,116 +23,46 @@
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
-                        <!-- Linha Superior -->
-                        <div class="row g-3 mb-4">
-                            <!-- Tipo de Transação -->
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <select 
-                                        name="{{ form.transaction_type.name }}" 
-                                        id="{{ form.transaction_type.id_for_label }}" 
-                                        class="form-select"
-                                        placeholder=" "
-                                    >
-                                        {% for value, label in form.transaction_type.field.choices %}
-                                            <option value="{{ value }}">{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <label for="{{ form.transaction_type.id_for_label }}">
-                                        <i class="bi bi-arrow-left-right me-2"></i>Tipo
-                                    </label>
-                                </div>
-                                {% for error in form.transaction_type.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
+                        <!-- Campo Tipo -->
+                        <div class="mb-4">
+                            <label class="form-label text-primary fw-bold">Tipo</label>
+                            {{ form.transaction_type }}
+                        </div>
 
-                            <!-- Valor -->
+                        <!-- Linha Valor + Data -->
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input 
-                                        type="number" 
-                                        name="{{ form.amount.name }}" 
-                                        id="{{ form.amount.id_for_label }}" 
-                                        class="form-control"
-                                        placeholder=" "
-                                        step="0.01"
-                                    >
-                                    <label for="{{ form.amount.id_for_label }}">
-                                        <i class="bi bi-currency-euro me-2"></i>Valor
-                                    </label>
+                                    {{ form.amount }}
+                                    <label for="{{ form.amount.id_for_label }}">Valor (€)</label>
                                 </div>
-                                {% for error in form.amount.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="date" 
+                                           class="form-control" 
+                                           name="{{ form.date.name }}" 
+                                           id="{{ form.date.id_for_label }}"
+                                           value="{{ form.date.value|default:'' }}">
+                                    <label for="{{ form.date.id_for_label }}">Data</label>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Linha do Meio -->
-                        <div class="row g-3 mb-4">
-                            <!-- Data -->
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input 
-                                        type="date" 
-                                        name="{{ form.date.name }}" 
-                                        id="{{ form.date.id_for_label }}" 
-                                        class="form-control"
-                                        placeholder=" "
-                                    >
-                                    <label for="{{ form.date.id_for_label }}">
-                                        <i class="bi bi-calendar me-2"></i>Data
-                                    </label>
-                                </div>
-                                {% for error in form.date.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- Categoria -->
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input 
-                                        type="text" 
-                                        name="{{ form.category.name }}" 
-                                        id="{{ form.category.id_for_label }}" 
-                                        class="form-control"
-                                        placeholder=" "
-                                        list="category-list"
-                                    >
-                                    <datalist id="category-list">
-                                        <!-- Adicione categorias sugeridas -->
-                                        <option value="Alimentação">
-                                        <option value="Transporte">
-                                        <option value="Moradia">
-                                    </datalist>
-                                    <label for="{{ form.category.id_for_label }}">
-                                        <i class="bi bi-tag me-2"></i>Categoria
-                                    </label>
-                                </div>
-                                {% for error in form.category.errors %}
-                                    <div class="invalid-feedback d-block">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Descrição -->
+                        <!-- Campo Categoria -->
                         <div class="mb-4">
                             <div class="form-floating">
-                                <textarea 
-                                    name="{{ form.description.name }}" 
-                                    id="{{ form.description.id_for_label }}" 
-                                    class="form-control"
-                                    placeholder=" "
-                                    rows="3"
-                                ></textarea>
-                                <label for="{{ form.description.id_for_label }}">
-                                    <i class="bi bi-card-text me-2"></i>Descrição
-                                </label>
+                                {{ form.category }}
+                                <label for="{{ form.category.id_for_label }}">Categoria</label>
                             </div>
-                            {% for error in form.description.errors %}
-                                <div class="invalid-feedback d-block">{{ error }}</div>
-                            {% endfor %}
+                        </div>
+
+                        <!-- Campo Descrição -->
+                        <div class="mb-4">
+                            <div class="form-floating">
+                                {{ form.description }}
+                                <label for="{{ form.description.id_for_label }}">Descrição</label>
+                            </div>
                         </div>
 
                         <!-- Botão de Submissão -->
@@ -149,19 +79,26 @@
 </div>
 
 <style>
-    /* Estilos para animação das labels */
-    .form-floating > label {
+    .form-floating input,
+    .form-floating select,
+    .form-floating textarea {
+        height: 56px;
+        border: 2px solid #e0e0e0;
         transition: all 0.3s ease;
     }
 
-    .form-floating > .form-control:not(:placeholder-shown) ~ label,
-    .form-floating > .form-select ~ label {
-        opacity: 0.65;
-        transform: scale(0.85) translateY(-1.5rem) translateX(0.15rem);
+    .form-floating textarea {
+        height: 120px !important;
     }
 
-    .form-floating textarea:not(:placeholder-shown) ~ label {
-        transform: scale(0.85) translateY(-2.5rem) translateX(0.15rem);
+    .form-floating > label {
+        color: #6c757d;
+        left: 12px;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
     }
 </style>
 {% endblock %}

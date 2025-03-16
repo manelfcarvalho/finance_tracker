@@ -1,57 +1,111 @@
-{% extends 'transactions/base.html' %}
+{% extends 'base.html' %}
+{% load humanize %}
 
 {% block content %}
-  <h2>Análise Financeira</h2>
-  <div class="row">
-    <div class="col-md-4">
-      <div class="card text-white bg-success mb-3">
-        <div class="card-header">Total de Receitas</div>
-        <div class="card-body">
-          <h5 class="card-title">€ {{ income_total|default:"0" }}</h5>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="display-6">Análise Financeira</h1>
+        <div class="btn-group">
+            <a href="#" class="btn btn-outline-primary active">Mensal</a>
+            <a href="#" class="btn btn-outline-primary">Anual</a>
         </div>
-      </div>
     </div>
-    <div class="col-md-4">
-      <div class="card text-white bg-danger mb-3">
-        <div class="card-header">Total de Despesas</div>
-        <div class="card-body">
-          <h5 class="card-title">€ {{ expense_total|default:"0" }}</h5>
+
+    <div class="row g-4">
+        <!-- Gráfico de Tendências -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-bar-chart-line me-2"></i>Evolução Mensal</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Definindo altura fixa para o canvas -->
+                    <canvas id="trendChart" height="400"></canvas>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card text-white bg-info mb-3">
-        <div class="card-header">Balanço</div>
-        <div class="card-body">
-          <h5 class="card-title">€ {{ balance|default:"0" }}</h5>
+
+        <!-- Estatísticas Rápidas -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Métricas</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="metric-card bg-light p-3 rounded">
+                            <h6 class="text-muted">Maior Receita</h6>
+                            <h3 class="text-success">€{{ max_income|intcomma }}</h3>
+                        </div>
+                        <div class="metric-card bg-light p-3 rounded">
+                            <h6 class="text-muted">Maior Despesa</h6>
+                            <h3 class="text-danger">€{{ max_expense|intcomma }}</h3>
+                        </div>
+                        <div class="metric-card bg-light p-3 rounded">
+                            <h6 class="text-muted">Média Mensal</h6>
+                            <h3 class="text-primary">€{{ avg_balance|intcomma }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <h3>Gráfico Circular</h3>
-  <canvas id="myChart" width="500" height="500"></canvas>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Converte as variáveis do Django para números em JavaScript
-    const incomeTotal = parseFloat("{{ income_total|default:'0' }}");
-    const expenseTotal = parseFloat("{{ expense_total|default:'0' }}");
+<style>
+    .metric-card {
+        transition: transform 0.3s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px);
+    }
+</style>
 
-    console.log('Income:', incomeTotal, 'Expense:', expenseTotal); // Para debug
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gerar arrays de labels e dados a partir do monthly_comparison
+    var labels = [
+        {% for month in monthly_comparison %}
+            "{{ month.month|date:'M/Y' }}"{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ];
+    var incomeData = [
+        {% for month in monthly_comparison %}
+            {{ month.income|default:"0"|floatformat:"2" }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ];
+    var expenseData = [
+        {% for month in monthly_comparison %}
+            {{ month.expense|default:"0"|floatformat:"2" }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    ];
 
-    const ctx = document.getElementById('myChart').getContext('2d');
-    const myChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: ['Receitas', 'Despesas'],
-        datasets: [{
-          data: [incomeTotal, expenseTotal],
-          backgroundColor: ['#28a745', '#dc3545'],
-        }]
-      },
-      options: {
-        responsive: false,
-      }
+    var ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Receitas',
+                data: incomeData,
+                borderColor: '#4bc0c0',
+                tension: 0.4,
+                fill: false
+            },
+            {
+                label: 'Despesas',
+                data: expenseData,
+                borderColor: '#ff6384',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
     });
-  </script>
+});
+</script>
 {% endblock %}

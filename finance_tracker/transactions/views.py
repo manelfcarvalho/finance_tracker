@@ -2,11 +2,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Transaction
 from .forms import TransactionForm  # criaremos esse formulário
-from django.db.models import Sum , Q, F, DecimalField, FloatField
+from django.db.models import Sum , Q, F, DecimalField, Max
 from django.db.models.functions import Coalesce , TruncMonth
 from django.db.models.expressions import ExpressionWrapper
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
+from django.contrib import messages
 
 def home(request):
     return render(request, 'transactions/home.html')
@@ -35,25 +36,67 @@ def view_transactions(request):
 
 @login_required
 def analyze(request):
-    income_total = Transaction.objects.filter(user=request.user, transaction_type='income') \
-                    .aggregate(total=Sum('amount'))['total'] or 0
-    expense_total = Transaction.objects.filter(user=request.user, transaction_type='expense') \
-                     .aggregate(total=Sum('amount'))['total'] or 0
+    # Totais gerais
+    income_total = Transaction.objects.filter(
+        user=request.user, transaction_type='income'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+    
+    expense_total = Transaction.objects.filter(
+        user=request.user, transaction_type='expense'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal(0)
+    
     balance = income_total - expense_total
+
+    # Métricas: Maior Receita, Maior Despesa
+    max_income = Transaction.objects.filter(
+        user=request.user, transaction_type='income'
+    ).aggregate(max_val=Max('amount'))['max_val'] or Decimal(0)
+    
+    max_expense = Transaction.objects.filter(
+        user=request.user, transaction_type='expense'
+    ).aggregate(max_val=Max('amount'))['max_val'] or Decimal(0)
+
+    # Comparativo Mensal: agrupa transações por mês e calcula totais
+    monthly_comparison = Transaction.objects.filter(user=request.user) \
+        .annotate(month=TruncMonth('date')) \
+        .values('month') \
+        .annotate(
+            income=Sum('amount', filter=Q(transaction_type='income')) or Decimal(0),
+            expense=Sum('amount', filter=Q(transaction_type='expense')) or Decimal(0)
+        ) \
+        .order_by('-month')
+    
+    # Cálculo da Média Mensal do Saldo
+    total_balance = Decimal(0)
+    count = 0
+    for m in monthly_comparison:
+        inc = m.get('income') or Decimal(0)
+        exp = m.get('expense') or Decimal(0)
+        total_balance += (inc - exp)
+        count += 1
+    avg_balance = total_balance / count if count > 0 else Decimal(0)
+
     context = {
         'income_total': income_total,
         'expense_total': expense_total,
         'balance': balance,
+        'max_income': max_income,
+        'max_expense': max_expense,
+        'avg_balance': avg_balance,
+        'monthly_comparison': monthly_comparison,
     }
     return render(request, 'transactions/analyze.html', context)
-
 @login_required
 def delete_transaction(request, pk):
     transaction = get_object_or_404(Transaction, pk=pk, user=request.user)
+    
     if request.method == 'POST':
         transaction.delete()
+        messages.success(request, "Transação excluída com sucesso!")
         return redirect('transactions:view_transactions')
-    return render(request, 'transactions/confirm_delete.html', {'transaction': transaction})
+    
+    # Se não for POST, redireciona de qualquer forma
+    return redirect('transactions:view_transactions')
 
 @login_required
 def dashboard(request):

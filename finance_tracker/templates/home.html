@@ -1,10 +1,41 @@
-<!-- templates/home.html -->
 {% extends 'base.html' %}
+
 {% block content %}
-  <div class="text-center mt-5">
-    <h1>Bem-vindo ao Finance Tracker</h1>
-    <p>Por favor, faça login ou registre-se para acessar o sistema.</p>
-    <a href="{% url 'login' %}" class="btn btn-primary me-2">Login</a>
-    <a href="{% url 'register' %}" class="btn btn-secondary">Registrar</a>
+<div class="home-container d-flex flex-column justify-content-center align-items-center text-center">
+  <h1 class="display-3 fw-bold text-white mb-3">Finance Tracker</h1>
+  <p class="lead text-white-50 mb-5">
+    Controle suas finanças de forma simples e eficaz.
+  </p>
+  <div>
+    <a href="{% url 'login' %}" class="btn btn-lg btn-warning me-3 shadow">
+      <i class="bi bi-box-arrow-in-right"></i> Login
+    </a>
+    <a href="{% url 'register' %}" class="btn btn-lg btn-light shadow">
+      <i class="bi bi-person-plus"></i> Registrar
+    </a>
   </div>
+</div>
+
+<style>
+  /* Fundo que cobre toda a tela */
+  body {
+    background: linear-gradient(135deg, #141e30, #243b55);
+    min-height: 100vh;
+  }
+  /* Centralização da home container */
+  .home-container {
+    height: 100vh;
+    width: 100%;
+  }
+  /* Ajuste dos botões */
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-lg:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
+  }
+</style>
 {% endblock %}
